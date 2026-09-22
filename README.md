@@ -1,7 +1,7 @@
 # Glue-Dating-application
 Project developed for the Hackathon Crypto Worlds Fair
 
-<img src="assets/logo.png" alt="Glue" width="300">
+<img src="assets/GlueLogo.png" alt="Glue" width="300">
 
 **© 2026 Glue. All rights reserved.**
 
