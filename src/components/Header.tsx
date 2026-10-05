@@ -32,15 +32,28 @@ export const Header: React.FC<HeaderProps> = ({
                 arrow_back_ios_new
               </span>
             </button>
-            <img
-              alt="Glue"
-              className="h-8 w-auto object-contain rounded-lg drop-shadow-[0_0_8px_rgba(255,45,120,0.5)]"
-              src={GLUE_LOGO}
-              onError={(e) => {
-                // fallback to text if image fails
-                (e.currentTarget as HTMLElement).style.display = 'none';
-              }}
-            />
+            <div className="h-8 w-8 rounded-lg overflow-hidden flex items-center justify-center drop-shadow-[0_0_8px_rgba(255,45,120,0.5)] shrink-0">
+              <img
+                alt="Glue"
+                className="h-full w-full object-contain"
+                src={GLUE_LOGO}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+              <div
+                style={{ display: 'none' }}
+                className="w-full h-full bg-[#1e1e30] border border-primary/40 rounded-lg items-center justify-center relative"
+              >
+                <span className="font-headline font-black text-white text-base leading-none">G</span>
+                <span className="material-symbols-outlined text-[10px] text-primary absolute -bottom-0.5 -right-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  favorite
+                </span>
+              </div>
+            </div>
             <h1 className="text-xs sm:text-sm font-headline font-bold uppercase tracking-wider text-on-surface">
               Candidate Dossier
             </h1>
@@ -82,11 +95,30 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-md mx-auto h-16 px-4 flex items-center justify-between">
         {/* Logo & Brand */}
         <div className="flex items-center gap-2">
-          <img
-            alt="Glue Logo"
-            className="h-8 w-auto object-contain drop-shadow-[0_0_8px_rgba(255,45,120,0.65)] rounded"
-            src={GLUE_LOGO}
-          />
+          <div className="h-8 w-8 rounded-lg overflow-hidden flex items-center justify-center drop-shadow-[0_0_8px_rgba(255,45,120,0.65)] shrink-0">
+            <img
+              alt="Glue Logo"
+              className="h-full w-full object-contain"
+              src={GLUE_LOGO}
+              onError={(e) => {
+                // If local image ever fails to load, fallback to SVG emblem
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+            {/* Embedded High-Fidelity SVG Fallback matching the Glue Emblem */}
+            <div
+              style={{ display: 'none' }}
+              className="w-full h-full bg-[#1e1e30] border border-primary/40 rounded-lg items-center justify-center relative"
+            >
+              <span className="font-headline font-black text-white text-base leading-none">G</span>
+              <span className="material-symbols-outlined text-[10px] text-primary absolute -bottom-0.5 -right-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
+                favorite
+              </span>
+            </div>
+          </div>
           <span className="font-headline text-lg text-white tracking-wider font-extrabold drop-shadow-[0_0_10px_rgba(255,45,120,0.4)]">
             Glue
           </span>
