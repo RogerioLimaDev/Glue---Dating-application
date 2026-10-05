@@ -1,0 +1,6 @@
+{
+  "name": "Glue - Intentional Dating with Anti-Ghosting Protocol",
+  "description": "High-intent dating backed by staked Vows, mutual commitment escrow, and in-person verification codes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
