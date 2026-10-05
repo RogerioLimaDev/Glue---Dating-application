@@ -1,8 +1,7 @@
 import { Candidate, Commitment, Conversation } from '../types';
 
-export const GLUE_LOGO = 'https://lh3.googleusercontent.com/aida/AEtjO1VyCIlnYeLhsxUyLaNWzHhM3nFhYAZRGuQMKEcPGdCwLjb_ugknGjrajPa1dQlpWUurAy-IhIGNIXZ8YpOtzXcRf7m0lMOukmlG_po0bmQ_GjjxDpXAe2HFReVEHOO-TtIFV7zYyMBTp67o9kS680Sr7LlRhx9ik6hA8t8H_qzDDmRN2vn9ttCPv8wZwNqtg1irfZ99IAWvPuwinYmhYMXi_6WiOTM1iXgwoD396czfUf7De2n_ra44qwuSFRUvOa2TZ6TPewLRMsI';
-
-export const USER_AVATAR = 'https://lh3.googleusercontent.com/aida/AEtjO1WcLa1hicnP3j1cn4pRosGprQRE0f8BqycKChYawuVPlVIfHXoBivZWrGhuCWC2D1LtevOFd1sbifXh1HFxlUbwwI79XVD-l6M066RVuN6Nz-_Ktm_ekLs-036SvQ3BMpPicQP9DRIjFl8EtDKM5_GjATXYWQd3olyiMzZ7i2TuVrtd8YV4nWQ1_YU4PoU-N8Dki9S88WzYdeysooznLfdttocfeuL-6EaD7jh7jQUwQ7C90CboBjBSErXR';
+export const GLUE_LOGO = '/images/logo.png';
+export const USER_AVATAR = '/images/user-avatar.jpg';
 
 export const CANDIDATES: Candidate[] = [
   {
@@ -20,7 +19,7 @@ export const CANDIDATES: Candidate[] = [
     vowRequirement: 2,
     vowVibeNote: 'Prefers cozy café or evening gallery walk',
     tags: ['Art History', 'Specialty Coffee', 'Architecture', 'Analog Film'],
-    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDwZdUoGNeeCwFfCQWpuuVkEjlkpXsjpxk6y1Hx7fImKenk0d5_a3hRKO9LbdoK90Rlw26LXvFZN9GqWfjyXuhwjG00WzMNS1VjMga6diHdS9K_P55IpmD0Vf1btM_kz7IDwbSLSX68KG8ya2kjThChFgiY6BoBO7SaKdxeY2IQmUx_lw41NXR-YIV3aYSMN-GqZrHAG_mzQPZ-XG_qAXNWUbcZ7VjXFgZKo3bxY-8xoj3FNzTgqoKy9A',
+    imageUrl: '/images/mariana-costa.jpg',
     previewBio: '“Curating spaces and collecting rare vinyl...”',
     meetingVenue: 'Café Origami',
     meetingTime: '4:00 PM'
@@ -40,7 +39,7 @@ export const CANDIDATES: Candidate[] = [
     vowRequirement: 3,
     vowVibeNote: 'Prefers afternoon botanical garden walk or matcha bar',
     tags: ['Urban Ecology', 'Book Clubs', 'Espresso', 'Sustainable Cities'],
-    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAUauG_NSriPc4CeEK9fDor-nUvxBKpST1pOXGaLByDZVFv49etlKlcmeya3lN5u8_rEJwjOKvflynetsSJavZkaP3OvcoIe4uZ0YZchwovSJMfUaR3vabr0Pb5NWa4fqw0V565ON_70j-J7axKYGESu-wh_e-ankf_gOZL2XZfSTT026J_Aqrqq9Et6wwLuv4MkPq36P6VS5j-CIabW-NILI58pSNXiazqMSuWEUSRBJyJHQl1LmdbTQ',
+    imageUrl: '/images/camila-silveira.jpg',
     previewBio: 'Looking for book swaps & architecture walks',
     meetingVenue: 'Café Jardin',
     meetingTime: '2:30 PM'
@@ -60,7 +59,7 @@ export const CANDIDATES: Candidate[] = [
     vowRequirement: 5,
     vowVibeNote: 'Prefers acoustic lounge or espresso bar',
     tags: ['Acoustic Vinyl', 'Modernist Design', 'Cold Brew', 'Cinema'],
-    imageUrl: 'https://lh3.googleusercontent.com/aida/AEtjO1X_h_Zxh9mc4eN-kxwT0uCu3XyTStvjy4hX_oG3XAJrxpEYv9ZOox-FzcMmUvd3pXvW-w0cPJp6-v74WMaRFVXcowrEdu1aEPxj7Q0NGbOR0MMi_Zzc8HE4NUkaZKTknTjvj_Dg2iPvPg-8x6Plr1099US4GN5SuDUJiyauGF3qw6aZWQrx7Fd_vQnXqo4ATbeAQwoEXPRV5qW6M0pOHP7bCBVMRsnjE0uHEAzxjex1OCXFpdajcoGMhDo',
+    imageUrl: '/images/alex-rivera.jpg',
     previewBio: 'Escrow committed for Café Gitane',
     meetingVenue: 'Café Gitane',
     meetingTime: '11:30 AM'
@@ -93,7 +92,7 @@ export const INITIAL_COMMITMENT: Commitment = {
   candidateName: 'Alex Rivera',
   candidateAge: 28,
   candidateTitle: 'Brand Strategist & Musician',
-  candidateImage: 'https://lh3.googleusercontent.com/aida/AEtjO1X_h_Zxh9mc4eN-kxwT0uCu3XyTStvjy4hX_oG3XAJrxpEYv9ZOox-FzcMmUvd3pXvW-w0cPJp6-v74WMaRFVXcowrEdu1aEPxj7Q0NGbOR0MMi_Zzc8HE4NUkaZKTknTjvj_Dg2iPvPg-8x6Plr1099US4GN5SuDUJiyauGF3qw6aZWQrx7Fd_vQnXqo4ATbeAQwoEXPRV5qW6M0pOHP7bCBVMRsnjE0uHEAzxjex1OCXFpdajcoGMhDo',
+  candidateImage: '/images/alex-rivera.jpg',
   venue: 'Café Gitane',
   time: '11:30 AM',
   userCode: '4827',
@@ -108,7 +107,7 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
     id: 'conv-alex',
     candidateId: 'alex-rivera',
     candidateName: 'Alex Rivera',
-    candidateImage: 'https://lh3.googleusercontent.com/aida/AEtjO1X_h_Zxh9mc4eN-kxwT0uCu3XyTStvjy4hX_oG3XAJrxpEYv9ZOox-FzcMmUvd3pXvW-w0cPJp6-v74WMaRFVXcowrEdu1aEPxj7Q0NGbOR0MMi_Zzc8HE4NUkaZKTknTjvj_Dg2iPvPg-8x6Plr1099US4GN5SuDUJiyauGF3qw6aZWQrx7Fd_vQnXqo4ATbeAQwoEXPRV5qW6M0pOHP7bCBVMRsnjE0uHEAzxjex1OCXFpdajcoGMhDo',
+    candidateImage: '/images/alex-rivera.jpg',
     lastMessage: 'I just grabbed a small booth near the window. Code ready!',
     lastMessageTime: '11:28 AM',
     unreadCount: 1,
@@ -152,7 +151,7 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
     id: 'conv-mariana',
     candidateId: 'mariana-costa',
     candidateName: 'Mariana Costa',
-    candidateImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDwZdUoGNeeCwFfCQWpuuVkEjlkpXsjpxk6y1Hx7fImKenk0d5_a3hRKO9LbdoK90Rlw26LXvFZN9GqWfjyXuhwjG00WzMNS1VjMga6diHdS9K_P55IpmD0Vf1btM_kz7IDwbSLSX68KG8ya2kjThChFgiY6BoBO7SaKdxeY2IQmUx_lw41NXR-YIV3aYSMN-GqZrHAG_mzQPZ-XG_qAXNWUbcZ7VjXFgZKo3bxY-8xoj3FNzTgqoKy9A',
+    candidateImage: '/images/mariana-costa.jpg',
     lastMessage: '“Curating spaces and collecting rare vinyl...”',
     lastMessageTime: '10:14 AM',
     unreadCount: 0,
