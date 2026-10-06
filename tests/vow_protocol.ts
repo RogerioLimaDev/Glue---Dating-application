@@ -162,7 +162,79 @@ describe("vow_protocol", () => {
     expect(account.state).to.deep.equal({ verified: {} });
   });
 
-  it("Settle commitment and return Vows", async () => {
+  it("Cancel commitment returns locked vows", async () => {
+    // Criar um novo compromisso para cancelar
+    const freshPartnerCode = "222222";
+    const freshProposerCode = "111111";
+    const freshPartnerHash = codeHash(freshPartnerCode);
+    const freshProposerHash = codeHash(freshProposerCode);
+
+    const [freshCommitment] = anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("commitment"),
+        proposer.publicKey.toBuffer(),
+        partner.publicKey.toBuffer(),
+        Buffer.from(freshProposerHash),
+      ],
+      program.programId
+    );
+
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = new anchor.BN(now + 86400);
+
+    await program.methods
+      .createCommitment(
+        vows,
+        venueHash,
+        timeHash,
+        freshProposerHash,
+        freshPartnerHash,
+        expiresAt
+      )
+      .accounts({
+        commitment: freshCommitment,
+        proposer: proposer.publicKey,
+        partner: partner.publicKey,
+        proposerVault,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([proposer])
+      .rpc();
+
+    await program.methods
+      .acceptCommitment()
+      .accounts({
+        commitment: freshCommitment,
+        partner: partner.publicKey,
+        partnerVault,
+      })
+      .signers([partner])
+      .rpc();
+
+    await program.methods
+      .cancelCommitment()
+      .accounts({
+        commitment: freshCommitment,
+        caller: partner.publicKey,
+        proposerVault,
+        partnerVault,
+      })
+      .signers([partner])
+      .rpc();
+
+    const account = await program.account.commitment.fetch(freshCommitment);
+    expect(account.state).to.deep.equal({ cancelled: {} });
+
+    const proposerAccount = await program.account.userVault.fetch(proposerVault);
+    expect(proposerAccount.balance.toNumber()).to.equal(100);
+    expect(proposerAccount.locked.toNumber()).to.equal(0);
+
+    const partnerAccount = await program.account.userVault.fetch(partnerVault);
+    expect(partnerAccount.balance.toNumber()).to.equal(100);
+    expect(partnerAccount.locked.toNumber()).to.equal(0);
+  });
+
+  it("Settle verified commitment and return Vows", async () => {
     await program.methods
       .settleCommitment()
       .accounts({
@@ -181,8 +253,8 @@ describe("vow_protocol", () => {
     expect(proposerAccount.balance.toNumber()).to.equal(100);
     expect(proposerAccount.locked.toNumber()).to.equal(0);
 
-    const partnerAccount = await program.account.userVault.fetch(partnerVault);
-    expect(partnerAccount.balance.toNumber()).to.equal(100);
-    expect(partnerAccount.locked.toNumber()).to.equal(0);
+    const partnerAccountAfterSettle = await program.account.userVault.fetch(partnerVault);
+    expect(partnerAccountAfterSettle.balance.toNumber()).to.equal(100);
+    expect(partnerAccountAfterSettle.locked.toNumber()).to.equal(0);
   });
 });

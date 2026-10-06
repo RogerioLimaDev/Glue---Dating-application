@@ -26,6 +26,9 @@ pub mod vow_protocol {
     ) -> Result<()> {
         require!(vows > 0, VowError::ZeroVows);
 
+        let now = Clock::get()?.unix_timestamp;
+        require!(expires_at > now, VowError::InvalidExpiry);
+
         let vault = &mut ctx.accounts.proposer_vault;
         require!(vault.balance >= vows, VowError::InsufficientBalance);
 
@@ -77,12 +80,16 @@ pub mod vow_protocol {
             VowError::InvalidState
         );
 
-        ctx.accounts.proposer_vault.locked -= commitment.vows;
-        ctx.accounts.proposer_vault.balance += commitment.vows;
+        let vows = commitment.vows;
+
+        require!(ctx.accounts.proposer_vault.locked >= vows, VowError::InsufficientLocked);
+        ctx.accounts.proposer_vault.locked -= vows;
+        ctx.accounts.proposer_vault.balance += vows;
 
         if commitment.state == CommitmentState::Locked {
-            ctx.accounts.partner_vault.locked -= commitment.vows;
-            ctx.accounts.partner_vault.balance += commitment.vows;
+            require!(ctx.accounts.partner_vault.locked >= vows, VowError::InsufficientLocked);
+            ctx.accounts.partner_vault.locked -= vows;
+            ctx.accounts.partner_vault.balance += vows;
         }
 
         commitment.state = CommitmentState::Cancelled;
@@ -123,25 +130,39 @@ pub mod vow_protocol {
     pub fn settle_commitment(ctx: Context<SettleCommitment>) -> Result<()> {
         let commitment = &mut ctx.accounts.commitment;
         let now = Clock::get()?.unix_timestamp;
+        let vows = commitment.vows;
 
         match commitment.state {
             CommitmentState::Verified => {
-                ctx.accounts.proposer_vault.locked -= commitment.vows;
-                ctx.accounts.proposer_vault.balance += commitment.vows;
-                ctx.accounts.partner_vault.locked -= commitment.vows;
-                ctx.accounts.partner_vault.balance += commitment.vows;
+                require!(ctx.accounts.proposer_vault.locked >= vows, VowError::InsufficientLocked);
+                require!(ctx.accounts.partner_vault.locked >= vows, VowError::InsufficientLocked);
+
+                ctx.accounts.proposer_vault.locked -= vows;
+                ctx.accounts.proposer_vault.balance += vows;
+                ctx.accounts.partner_vault.locked -= vows;
+                ctx.accounts.partner_vault.balance += vows;
                 commitment.state = CommitmentState::Settled;
             }
             CommitmentState::Locked if now > commitment.expires_at => {
                 let caller = ctx.accounts.caller.key();
                 if caller == commitment.proposer {
-                    ctx.accounts.proposer_vault.locked -= commitment.vows;
-                    ctx.accounts.proposer_vault.balance += commitment.vows * 2;
-                    ctx.accounts.partner_vault.locked -= commitment.vows;
+                    require!(ctx.accounts.proposer_vault.locked >= vows, VowError::InsufficientLocked);
+                    require!(ctx.accounts.partner_vault.locked >= vows, VowError::InsufficientLocked);
+
+                    // No-show: quem chamou (proposer) recebe seus Vows + Vows do partner
+                    ctx.accounts.proposer_vault.locked -= vows;
+                    ctx.accounts.proposer_vault.balance += vows * 2;
+                    ctx.accounts.partner_vault.locked -= vows;
+                    // partner_vault.balance não é creditado: partner perdeu seus Vows por no-show
                 } else if caller == commitment.partner {
-                    ctx.accounts.partner_vault.locked -= commitment.vows;
-                    ctx.accounts.partner_vault.balance += commitment.vows * 2;
-                    ctx.accounts.proposer_vault.locked -= commitment.vows;
+                    require!(ctx.accounts.partner_vault.locked >= vows, VowError::InsufficientLocked);
+                    require!(ctx.accounts.proposer_vault.locked >= vows, VowError::InsufficientLocked);
+
+                    // No-show: quem chamou (partner) recebe seus Vows + Vows do proposer
+                    ctx.accounts.partner_vault.locked -= vows;
+                    ctx.accounts.partner_vault.balance += vows * 2;
+                    ctx.accounts.proposer_vault.locked -= vows;
+                    // proposer_vault.balance não é creditado: proposer perdeu seus Vows por no-show
                 } else {
                     return Err(VowError::Unauthorized.into());
                 }
@@ -218,11 +239,11 @@ pub struct AcceptCommitment<'info> {
 pub struct CancelCommitment<'info> {
     #[account(
         mut,
-        constraint = commitment.proposer == proposer.key() || commitment.partner == proposer.key(),
+        constraint = commitment.proposer == caller.key() || commitment.partner == caller.key(),
     )]
     pub commitment: Account<'info, Commitment>,
-    /// CHECK: proposer or partner account
-    pub proposer: AccountInfo<'info>,
+    #[account(mut)]
+    pub caller: Signer<'info>,
     #[account(
         mut,
         seeds = [b"user_vault", commitment.proposer.as_ref()],
@@ -324,6 +345,10 @@ pub enum VowError {
     InvalidDateCode,
     #[msg("Unauthorized")]
     Unauthorized,
+    #[msg("Insufficient locked vows")]
+    InsufficientLocked,
+    #[msg("Expiry must be in the future")]
+    InvalidExpiry,
 }
 
 fn hash_code(code: &str) -> [u8; 32] {
