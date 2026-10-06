@@ -129,6 +129,7 @@ Liquida o compromisso e libera ou redistribui os Vows.
 - Cada lado mostra seu próprio código e digita o código do outro.
 - O programa recebe os dois códigos em claro e valida contra os hashes armazenados.
 - **Importante:** os códigos em claro nunca são armazenados on-chain; apenas seus hashes.
+- **Simplificação do MVP:** uma única transação `verify_date` recebe os dois códigos. Para produção, cada lado deve provar separadamente que conhece o código do outro.
 
 ## Regras de liquidação
 
@@ -157,7 +158,7 @@ Liquida o compromisso e libera ou redistribui os Vows.
 - Apenas o `proposer` pode criar um compromisso com seus próprios Vows.
 - Apenas o `partner` pode aceitar um compromisso que o tenha como parceiro.
 - Cancelamento pode ser chamado por qualquer um dos dois lados.
-- `verify_date` pode ser chamado por qualquer um dos dois lados, mas exige ambos os códigos corretos.
+- `verify_date` pode ser chamado por qualquer um dos dois lados, mas exige ambos os códigos corretos. **Nota:** no MVP isso é aceitável para simplificar a demo, mas não é seguro para produção; a versão final deve separar a prova de cada lado.
 - `settle_commitment` só executa conforme estado e regras de tempo.
 
 ## Fora do MVP
