@@ -20,8 +20,15 @@ export const ChatsScreen: React.FC<ChatsScreenProps> = ({
       : conversations[0]?.id || ''
   );
   const [inputText, setInputText] = useState('');
+  const [showVenueBanner, setShowVenueBanner] = useState(false);
+  const [meetingAcknowledged, setMeetingAcknowledged] = useState(false);
 
   const activeConv = conversations.find(c => c.id === activeConvId) || conversations[0];
+
+  // Reset meetingAcknowledged when switching conversations
+  React.useEffect(() => {
+    setMeetingAcknowledged(false);
+  }, [activeConvId]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,42 +89,65 @@ export const ChatsScreen: React.FC<ChatsScreenProps> = ({
         {activeConv ? (
           <div className="flex-1 flex flex-col rounded-2xl bg-surface-container border border-outline-variant/60 shadow-xl overflow-hidden min-h-[500px]">
             {/* Thread Header */}
-            <div className="p-3.5 bg-surface-container-high/80 border-b border-[#302840] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <img
-                    src={activeConv.candidateImage}
-                    alt={activeConv.candidateName}
-                    className="w-10 h-10 rounded-full object-cover border border-primary/50"
-                  />
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_6px_#00ffcc]" />
+            <div className="p-3.5 bg-surface-container-high/80 border-b border-[#302840] flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <img
+                      src={activeConv.candidateImage}
+                      alt={activeConv.candidateName}
+                      className="w-10 h-10 rounded-full object-cover border border-primary/50"
+                    />
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_6px_#00ffcc]" />
+                  </div>
+                  <div>
+                    <h3 className="font-headline font-bold text-sm text-on-surface flex items-center gap-1.5">
+                      {activeConv.candidateName}
+                      <span className="material-symbols-outlined text-xs text-secondary">verified</span>
+                    </h3>
+                    <p className="text-[10px] font-label text-secondary neon-text-cyan">
+                      {activeConv.hasActiveEscrow ? 'Escrow Locked • Ceremony Ready' : 'Mutual Vow Established'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-headline font-bold text-sm text-on-surface flex items-center gap-1.5">
-                    {activeConv.candidateName}
-                    <span className="material-symbols-outlined text-xs text-secondary">verified</span>
-                  </h3>
-                  <p className="text-[10px] font-label text-secondary neon-text-cyan">
-                    {activeConv.hasActiveEscrow ? 'Escrow Locked • Ceremony Ready' : 'Mutual Vow Established'}
-                  </p>
-                </div>
+
+                {activeConv.hasActiveEscrow && meetingAcknowledged && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenCeremonyForCandidate(activeConv.candidateId)}
+                    className="px-2.5 py-1 rounded-lg bg-primary text-white font-headline text-[10px] font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(255,45,120,0.4)] hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[13px]">key</span>
+                    <span>Ceremony</span>
+                  </button>
+                )}
               </div>
 
-              {activeConv.hasActiveEscrow && (
+              {activeConv.hasActiveEscrow && activeConv.meetingVenue && (
                 <button
                   type="button"
-                  onClick={() => onOpenCeremonyForCandidate(activeConv.candidateId)}
-                  className="px-2.5 py-1 rounded-lg bg-primary text-white font-headline text-[10px] font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(255,45,120,0.4)] hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer"
+                  onClick={() => {
+                    if (showVenueBanner) {
+                      setShowVenueBanner(false);
+                      setMeetingAcknowledged(false);
+                    } else {
+                      setShowVenueBanner(true);
+                      setMeetingAcknowledged(true);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-secondary/40 text-center font-headline text-xs uppercase tracking-wider transition-all cursor-pointer"
+                  style={{
+                    color: showVenueBanner ? 'var(--error)' : 'var(--secondary)',
+                    backgroundColor: showVenueBanner ? 'rgba(255,45,120,0.15)' : 'var(--surface-container-highest)'
+                  }}
                 >
-                  <span className="material-symbols-outlined text-[13px]">key</span>
-                  <span>Ceremony</span>
+                  {showVenueBanner ? 'Cancel meeting' : 'Meeting scheduled'}
                 </button>
               )}
             </div>
 
-            {/* In-Person Escrow Milestone Banner inside chat */}
-            {activeConv.hasActiveEscrow && activeConv.meetingVenue && (
-              <div className="m-3 p-3 rounded-xl bg-surface-container-highest/60 border border-secondary/40 flex items-center justify-between gap-3">
+            {showVenueBanner && activeConv.hasActiveEscrow && activeConv.meetingVenue && meetingAcknowledged && (
+              <div className="m-3 p-3 rounded-xl bg-surface-container-highest/60 border border-secondary/40 flex items-center justify-between gap-3 animate-fade-in">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-secondary/15 flex items-center justify-center text-secondary">
                     <span className="material-symbols-outlined text-sm">handshake</span>

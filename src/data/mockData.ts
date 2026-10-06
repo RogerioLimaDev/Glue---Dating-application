@@ -79,7 +79,7 @@ export const CANDIDATES: Candidate[] = [
     vowRequirement: 2,
     vowVibeNote: 'Prefers evening exhibition preview or sake bar',
     tags: ['Installation Art', 'Ambient Sound', 'Natural Wine', 'Typography'],
-    imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/images/mateo-bianchi.png',
     previewBio: 'Looking for intentional dates in São Paulo',
     meetingVenue: 'Bar do Museu',
     meetingTime: '7:00 PM'
@@ -98,8 +98,9 @@ export const INITIAL_COMMITMENT: Commitment = {
   userCode: '4827',
   partnerCode: '6319',
   vowsStaked: 5,
-  status: 'escrowed',
-  createdAt: 'Today, 10:00 AM'
+  status: 'fulfilled',
+  createdAt: 'Today, 10:00 AM',
+  fulfilledAt: 'Today, 11:30 AM'
 };
 
 export const INITIAL_CONVERSATIONS: Conversation[] = [

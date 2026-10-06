@@ -21,6 +21,7 @@ export const CeremonyScreen: React.FC<CeremonyScreenProps> = ({
   const [activeDigitIndex, setActiveDigitIndex] = useState<number | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [showKeypad, setShowKeypad] = useState(false);
+  const [showVerifiedModal, setShowVerifiedModal] = useState(false);
 
   const handleDigitChange = (index: number, val: string) => {
     const updated = [...partnerDigits];
@@ -60,6 +61,17 @@ export const CeremonyScreen: React.FC<CeremonyScreenProps> = ({
       onVerify();
     }, 800);
   };
+
+  const handleCloseVerifiedModal = () => {
+    setShowVerifiedModal(false);
+  };
+
+  // Sync modal with isVerified prop from parent
+  React.useEffect(() => {
+    if (isVerified) {
+      setShowVerifiedModal(true);
+    }
+  }, [isVerified]);
 
   const userCodeDigits = (commitment.userCode || '4827').split('');
 
@@ -303,69 +315,99 @@ export const CeremonyScreen: React.FC<CeremonyScreenProps> = ({
         </div>
 
         {/* Fulfilled State Preview Card */}
-        <div
-          className={`relative p-5 rounded-xl bg-surface-container-low border transition-all duration-500 shadow-lg overflow-hidden ${
-            isVerified
-              ? 'border-secondary/70 shadow-[0_0_20px_rgba(0,255,204,0.25)] bg-surface-container'
-              : 'border-[#302840]'
-          }`}
-        >
-          <div className="flex items-start gap-3.5">
-            {/* Glowing Infinity Knot Badge */}
-            <div className="w-10 h-10 rounded-full bg-secondary-container/60 border border-secondary/40 flex-shrink-0 flex items-center justify-center neon-glow-cyan">
-              <span className="material-symbols-outlined text-secondary text-xl">
-                all_inclusive
-              </span>
-            </div>
-
-            <div className="flex-1 min-w-0 space-y-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-label font-bold text-tertiary tracking-widest uppercase">
-                  Fulfilled • Mutual Vow
+        {isVerified && !showVerifiedModal && (
+          <div
+            className="relative p-5 rounded-xl bg-surface-container-low border transition-all duration-500 shadow-lg overflow-hidden"
+            style={{
+              borderColor: 'rgba(0, 255, 204, 0.7)',
+              boxShadow: '0 0 20px rgba(0,255,204,0.25)',
+              backgroundColor: 'var(--surface-container)'
+            }}
+          >
+            <div className="flex items-start gap-3.5">
+              {/* Glowing Infinity Knot Badge */}
+              <div className="w-10 h-10 rounded-full bg-secondary-container/60 border border-secondary/40 flex-shrink-0 flex items-center justify-center neon-glow-cyan">
+                <span className="material-symbols-outlined text-secondary text-xl">
+                  all_inclusive
                 </span>
-                {isVerified && (
+              </div>
+
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-label font-bold text-tertiary tracking-widest uppercase">
+                    Fulfilled • Mutual Vow
+                  </span>
                   <span className="px-1.5 py-0.2 rounded bg-secondary/20 text-secondary text-[9px] font-bold uppercase">
                     Live
                   </span>
-                )}
-              </div>
+                </div>
 
-              <h4 className="text-xs font-headline font-semibold text-on-surface uppercase tracking-wide">
-                Date Verified - “Your commitment has been fulfilled.”
-              </h4>
+                <h4 className="text-xs font-headline font-semibold text-on-surface uppercase tracking-wide">
+                  Date Verified - "Your commitment has been fulfilled. Enjoy your meeting."
+                </h4>
 
-              <div className="flex items-center gap-2 pt-1 text-xs text-on-surface-variant font-body">
-                <span className="material-symbols-outlined text-sm text-tertiary">
-                  workspace_premium
-                </span>
-                <span className="font-medium text-on-surface">10 Vows Fulfilled</span>
-                <span className="text-[11px] opacity-75">
-                  (5 yours + 5 {commitment.candidateName.split(' ')[0]}&apos;s returned)
-                </span>
-              </div>
-
-              <div className="pt-2 flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={onOpenIcebreakers}
-                  className="inline-flex items-center gap-1 text-xs font-headline font-bold text-secondary neon-text-cyan hover:underline cursor-pointer"
-                >
-                  <span>Enjoy your conversation</span>
-                  <span className="material-symbols-outlined text-xs">arrow_forward</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onOpenChat(commitment.candidateId)}
-                  className="text-xs text-on-surface-variant hover:text-white underline font-body"
-                >
-                  Open Chat
-                </button>
+                <div className="flex items-center gap-2 pt-1 text-xs text-on-surface-variant font-body">
+                  <span className="material-symbols-outlined text-sm text-tertiary">
+                    workspace_premium
+                  </span>
+                  <span className="font-medium text-on-surface">10 Vows Fulfilled</span>
+                  <span className="text-[11px] opacity-75">
+                    (5 yours + 5 {commitment.candidateName.split(' ')[0]}'s returned)
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
+        {showVerifiedModal && (
+          <VerifiedModal
+            onClose={handleCloseVerifiedModal}
+            commitment={commitment}
+          />
+        )}
       </div>
     </div>
   );
 };
+
+const VerifiedModal: React.FC<{ onClose: () => void; commitment: Commitment }> = ({ onClose, commitment }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+    <div className="w-full max-w-sm bg-surface-container rounded-2xl border border-secondary/50 shadow-[0_0_30px_rgba(0,255,204,0.3)] p-5 space-y-4 text-center">
+      {/* Animated Check & Infinity Knot */}
+      <div className="w-16 h-16 rounded-full bg-secondary/20 border-2 border-secondary mx-auto flex items-center justify-center text-secondary shadow-[0_0_20px_rgba(0,255,204,0.5)]">
+        <span className="material-symbols-outlined text-3xl">all_inclusive</span>
+      </div>
+
+      <div className="space-y-1">
+        <span className="text-[10px] font-label font-bold text-secondary uppercase tracking-widest">
+          Date Verified
+        </span>
+        <h3 className="text-xl font-headline font-extrabold text-on-surface">
+          Commitment Fulfilled!
+        </h3>
+        <p className="text-xs font-body text-on-surface-variant leading-relaxed pt-1">
+          Your commitment has been fulfilled. Enjoy your meeting.
+        </p>
+      </div>
+
+      <div className="p-3 rounded-xl bg-surface-container-low border border-[#302840] flex items-center justify-between text-xs font-label">
+        <span className="text-on-surface-variant uppercase">Vows Fulfilled:</span>
+        <span className="text-secondary font-bold neon-text-cyan">
+          10 VOWS Returned
+        </span>
+      </div>
+
+      <div className="space-y-2 pt-1">
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-secondary to-tertiary text-on-secondary font-headline font-bold text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(0,255,204,0.4)] hover:opacity-95 transition-all cursor-pointer"
+        >
+          Convert your vows into currency
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+export default CeremonyScreen;

@@ -27,6 +27,13 @@ export default function App() {
   const [conversations, setConversations] = useState<Conversation[]>(INITIAL_CONVERSATIONS);
   const [isVerified, setIsVerified] = useState<boolean>(false);
 
+  // Reset verification state when leaving ceremony tab (for demo purposes)
+  React.useEffect(() => {
+    if (activeTab !== 'ceremony') {
+      setIsVerified(false);
+    }
+  }, [activeTab]);
+
   // Modals state
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isIcebreakerModalOpen, setIsIcebreakerModalOpen] = useState(false);
@@ -294,7 +301,7 @@ export default function App() {
         onClose={() => setIsVowStakedModalOpen(false)}
         onOpenCeremony={() => {
           setIsVowStakedModalOpen(false);
-          setActiveTab('ceremony');
+          setActiveTab('chats');
         }}
       />
 

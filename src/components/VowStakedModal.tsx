@@ -32,7 +32,7 @@ export const VowStakedModal: React.FC<VowStakedModalProps> = ({
             Vow Staked with {candidate.name.split(' ')[0]}!
           </h3>
           <p className="text-xs font-body text-on-surface-variant leading-relaxed pt-1">
-            {candidate.vowRequirement} Vows have been placed in escrow. Both of you will exchange 4-digit codes when you meet at {candidate.meetingVenue || 'the venue'}.
+            {candidate.vowRequirement} Vows have been placed in escrow. Both of you will exchange 4-digit codes when you meet.
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export const VowStakedModal: React.FC<VowStakedModalProps> = ({
             onClick={onOpenCeremony}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-headline font-bold text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(255,45,120,0.4)] hover:opacity-95 transition-all cursor-pointer"
           >
-            Launch In-Person Ceremony Screen
+            Chat with {candidate.name.split(' ')[0]}
           </button>
 
           <button

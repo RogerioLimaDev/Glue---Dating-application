@@ -20,11 +20,9 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
   activeDatePartnerName,
   onOpenFilterModal
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [filterMode, setFilterMode] = useState<'all' | 'high_vows' | 'location' | 'creative'>('all');
   const [superVowed, setSuperVowed] = useState<Record<string, boolean>>({});
-  const [isStaking, setIsStaking] = useState(false);
-  const [justStaked, setJustStaked] = useState(false);
+  const [stakingStates, setStakingStates] = useState<Record<string, { isStaking: boolean; justStaked: boolean }>>({});
 
   // Filter candidates based on selected filter
   const filteredCandidates = candidates.filter((c) => {
@@ -34,31 +32,206 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
     return true;
   });
 
-  const activeCandidate = filteredCandidates[currentIndex % filteredCandidates.length] || candidates[0];
-  const nextCandidate = filteredCandidates[(currentIndex + 1) % filteredCandidates.length] || candidates[1] || candidates[0];
-
-  const handlePass = () => {
-    setCurrentIndex((prev) => (prev + 1) % filteredCandidates.length);
-  };
-
   const handleSuperVow = (id: string) => {
     setSuperVowed((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleMakeVowClick = () => {
-    if (isStaking) return;
-    setIsStaking(true);
+  const handleMakeVow = (candidate: Candidate) => {
+    const state = stakingStates[candidate.id] || { isStaking: false, justStaked: false };
+    if (state.isStaking) return;
+
+    setStakingStates((prev) => ({ ...prev, [candidate.id]: { ...prev[candidate.id], isStaking: true } }));
     setTimeout(() => {
-      setIsStaking(false);
-      setJustStaked(true);
-      onMakeVow(activeCandidate);
+      setStakingStates((prev) => ({ ...prev, [candidate.id]: { isStaking: false, justStaked: true } }));
+      onMakeVow(candidate);
       setTimeout(() => {
-        setJustStaked(false);
+        setStakingStates((prev) => ({ ...prev, [candidate.id]: { isStaking: false, justStaked: false } }));
       }, 2000);
     }, 800);
   };
 
-  const isSuperVowActive = superVowed[activeCandidate.id];
+  const getStakingState = (id: string) => stakingStates[id] || { isStaking: false, justStaked: false };
+
+  // Render a full profile card for each candidate
+  const renderCandidateCard = (candidate: Candidate, index: number) => {
+    const isSuperVowActive = superVowed[candidate.id];
+    const { isStaking, justStaked } = getStakingState(candidate.id);
+
+    return (
+      <div key={candidate.id} className="relative w-full rounded-2xl bg-surface-container border border-outline-variant/60 overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.7)] flex flex-col transition-all animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+        {/* Visual Image Area with Scrims and Badges */}
+        <div className="relative w-full h-[370px] overflow-hidden bg-[#111118]">
+          <img
+            alt={`${candidate.name} in ${candidate.location}`}
+            className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+            src={candidate.imageUrl}
+          />
+
+          {/* Ambient Cyber Scrim Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/25 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-transparent to-transparent pointer-events-none" />
+
+          {/* Top Overlay Badges: Commitment & Protocol Verification */}
+          <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest/90 border border-secondary/30 backdrop-blur-md shadow-[0_0_12px_rgba(0,255,204,0.35)]">
+              <span className="material-symbols-outlined text-[15px] text-secondary">
+                verified_user
+              </span>
+              <span className="font-label text-[11px] font-bold tracking-wide text-secondary uppercase">
+                {candidate.commitmentRate}% Commitment
+              </span>
+              <span className="text-on-surface-variant/40 text-xs">•</span>
+              <span className="font-label text-[11px] text-on-surface font-medium">
+                {candidate.fulfilledCount} Fulfilled
+              </span>
+            </div>
+
+            {candidate.protocolVerified && (
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-highest/90 border border-tertiary/30 backdrop-blur-md text-tertiary shadow-[0_0_10px_rgba(255,224,74,0.25)]">
+                <span className="material-symbols-outlined text-[14px]">lock</span>
+                <span className="font-label text-[10px] uppercase font-bold tracking-widest">
+                  Protocol Verified
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Bottom Profile Name Overlaid on Image Base */}
+          <div className="absolute bottom-2 inset-x-4 flex items-end justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-headline text-2xl font-extrabold text-on-surface tracking-tight">
+                  {candidate.name}
+                </h2>
+                <span className="font-headline text-2xl text-on-surface-variant font-light">
+                  {candidate.age}
+                </span>
+              </div>
+              <p className="font-body text-xs text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+                <span className="text-on-surface font-medium">{candidate.title}</span>
+                <span>•</span>
+                <span className="flex items-center gap-0.5 text-secondary">
+                  <span className="material-symbols-outlined text-[13px]">location_on</span>
+                  {candidate.location} ({candidate.distance})
+                </span>
+              </p>
+            </div>
+
+            {/* Live status pulse */}
+            {candidate.activeNow && (
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest/85 backdrop-blur-md border border-[#302840]">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary" />
+                </span>
+                <span className="font-label text-[10px] text-secondary uppercase font-semibold">
+                  Active Now
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Profile Dossier Body */}
+        <div className="p-4 space-y-3.5">
+          {/* Bio Quote */}
+          <div className="bg-surface-container-low p-3 rounded-lg border border-[#302840]/60 shadow-sm">
+            <p className="font-body text-xs text-on-surface leading-relaxed">
+              {candidate.bio}
+            </p>
+          </div>
+
+          {/* Her Date Protocol / Stake Request */}
+          <div className="bg-surface-container-high/60 border border-[#302840] p-3 rounded-lg flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5 shadow-[0_0_10px_rgba(255,45,120,0.3)]">
+              <span className="material-symbols-outlined text-primary text-[16px]">
+                handshake
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <span className="font-label text-[10px] tracking-wider uppercase font-bold text-primary">
+                  Vow Request
+                </span>
+                <span className="font-label text-[10px] font-semibold text-secondary">
+                  Escrow Protected
+                </span>
+              </div>
+              <p className="font-body text-xs font-semibold text-on-surface mt-0.5">
+                Stakes {candidate.vowRequirement} Vows for first date
+              </p>
+              <p className="font-body text-[11px] text-on-surface-variant mt-0.5">
+                {candidate.vowVibeNote}
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Vibe Badges */}
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {candidate.tags.map((tag) => (
+              <span
+                key={tag}
+                className="font-label text-[11px] px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant border border-[#302840]/60"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Floating Action Controls */}
+          <div className="pt-2 flex items-center gap-2.5">
+            {/* Super Vow / Priority Ping */}
+            <button
+              type="button"
+              onClick={() => handleSuperVow(candidate.id)}
+              aria-label="Super Vow"
+              className={`w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center border transition-all shrink-0 active:scale-95 shadow-[0_0_14px_rgba(255,45,120,0.35)] cursor-pointer ${
+                isSuperVowActive
+                  ? 'text-tertiary border-tertiary shadow-[0_0_18px_rgba(255,224,74,0.5)]'
+                  : 'text-primary border-primary/40 hover:bg-surface-container-highest'
+              }`}
+            >
+              <span
+                className="material-symbols-outlined text-[22px]"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                bolt
+              </span>
+            </button>
+
+            {/* Make A Vow Action Button */}
+            <button
+              type="button"
+              onClick={() => handleMakeVow(candidate)}
+              disabled={isStaking}
+              className={`flex-1 h-12 rounded-full flex items-center justify-center gap-2 font-headline font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer ${
+                justStaked
+                  ? 'bg-secondary text-on-secondary shadow-[0_0_20px_rgba(0,255,204,0.5)]'
+                  : 'bg-primary text-on-primary shadow-[0_0_18px_rgba(255,45,120,0.45)] hover:opacity-95'
+              }`}
+            >
+              {isStaking ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
+                  <span>Vowing {candidate.vowRequirement} Tokens...</span>
+                </>
+              ) : justStaked ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                  <span>Vow Staked!</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">handshake</span>
+                  <span>Make a Vow ({candidate.vowRequirement} Vows)</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="relative flex-1 flex flex-col w-full min-h-screen bg-background text-on-surface pt-16 pb-24 selection:bg-primary selection:text-white">
@@ -156,248 +329,17 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
           </button>
         </div>
 
-        {/* Featured Discovery Hero Card */}
-        <div className="relative w-full rounded-2xl bg-surface-container border border-outline-variant/60 overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.7)] flex flex-col transition-all">
-          {/* Visual Image Area with Scrims and Badges */}
-          <div className="relative w-full h-[370px] overflow-hidden bg-[#111118]">
-            <img
-              alt={`${activeCandidate.name} in ${activeCandidate.location}`}
-              className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
-              src={activeCandidate.imageUrl}
-            />
-
-            {/* Ambient Cyber Scrim Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/25 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-transparent to-transparent pointer-events-none" />
-
-            {/* Top Overlay Badges: Commitment & Protocol Verification */}
-            <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest/90 border border-secondary/30 backdrop-blur-md shadow-[0_0_12px_rgba(0,255,204,0.35)]">
-                <span className="material-symbols-outlined text-[15px] text-secondary">
-                  verified_user
-                </span>
-                <span className="font-label text-[11px] font-bold tracking-wide text-secondary uppercase">
-                  {activeCandidate.commitmentRate}% Commitment
-                </span>
-                <span className="text-on-surface-variant/40 text-xs">•</span>
-                <span className="font-label text-[11px] text-on-surface font-medium">
-                  {activeCandidate.fulfilledCount} Fulfilled
-                </span>
-              </div>
-
-              {activeCandidate.protocolVerified && (
-                <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-highest/90 border border-tertiary/30 backdrop-blur-md text-tertiary shadow-[0_0_10px_rgba(255,224,74,0.25)]">
-                  <span className="material-symbols-outlined text-[14px]">lock</span>
-                  <span className="font-label text-[10px] uppercase font-bold tracking-widest">
-                    Protocol Verified
-                  </span>
-                </div>
-              )}
+        {/* Profile Cards List - All candidates displayed as full cards */}
+        <div className="space-y-4">
+          {filteredCandidates.length === 0 ? (
+            <div className="w-full text-center py-12 text-on-surface-variant">
+              <span className="material-symbols-outlined text-4xl mb-2 block">search_off</span>
+              <p className="font-label text-sm uppercase tracking-wider">No matches found</p>
+              <p className="text-xs mt-1">Try adjusting your filters</p>
             </div>
-
-            {/* Bottom Profile Name Overlaid on Image Base */}
-            <div className="absolute bottom-2 inset-x-4 flex items-end justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-headline text-2xl font-extrabold text-on-surface tracking-tight">
-                    {activeCandidate.name}
-                  </h2>
-                  <span className="font-headline text-2xl text-on-surface-variant font-light">
-                    {activeCandidate.age}
-                  </span>
-                </div>
-                <p className="font-body text-xs text-on-surface-variant flex items-center gap-1.5 mt-0.5">
-                  <span className="text-on-surface font-medium">{activeCandidate.title}</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-0.5 text-secondary">
-                    <span className="material-symbols-outlined text-[13px]">location_on</span>
-                    {activeCandidate.location} ({activeCandidate.distance})
-                  </span>
-                </p>
-              </div>
-
-              {/* Live status pulse */}
-              {activeCandidate.activeNow && (
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest/85 backdrop-blur-md border border-[#302840]">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary" />
-                  </span>
-                  <span className="font-label text-[10px] text-secondary uppercase font-semibold">
-                    Active Now
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Profile Dossier Body */}
-          <div className="p-4 space-y-3.5">
-            {/* Bio Quote */}
-            <div className="bg-surface-container-low p-3 rounded-lg border border-[#302840]/60 shadow-sm">
-              <p className="font-body text-xs text-on-surface leading-relaxed">
-                {activeCandidate.bio}
-              </p>
-            </div>
-
-            {/* Her Date Protocol / Stake Request */}
-            <div className="bg-surface-container-high/60 border border-[#302840] p-3 rounded-lg flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5 shadow-[0_0_10px_rgba(255,45,120,0.3)]">
-                <span className="material-symbols-outlined text-primary text-[16px]">
-                  handshake
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-label text-[10px] tracking-wider uppercase font-bold text-primary">
-                    Vow Request
-                  </span>
-                  <span className="font-label text-[10px] font-semibold text-secondary">
-                    Escrow Protected
-                  </span>
-                </div>
-                <p className="font-body text-xs font-semibold text-on-surface mt-0.5">
-                  Stakes {activeCandidate.vowRequirement} Vows for first date
-                </p>
-                <p className="font-body text-[11px] text-on-surface-variant mt-0.5">
-                  {activeCandidate.vowVibeNote}
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Vibe Badges */}
-            <div className="flex flex-wrap gap-1.5 pt-0.5">
-              {activeCandidate.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="font-label text-[11px] px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant border border-[#302840]/60"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            {/* Floating Action Controls */}
-            <div className="pt-2 flex items-center gap-2.5">
-              {/* Pass Button */}
-              <button
-                type="button"
-                onClick={handlePass}
-                aria-label="Pass Profile"
-                className="w-12 h-12 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center hover:text-error hover:bg-surface-container-highest border border-[#302840] transition-all shrink-0 active:scale-95 shadow-md cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[22px]">close</span>
-              </button>
-
-              {/* Super Vow / Priority Ping */}
-              <button
-                type="button"
-                onClick={() => handleSuperVow(activeCandidate.id)}
-                aria-label="Super Vow"
-                className={`w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center border transition-all shrink-0 active:scale-95 shadow-[0_0_14px_rgba(255,45,120,0.35)] cursor-pointer ${
-                  isSuperVowActive
-                    ? 'text-tertiary border-tertiary shadow-[0_0_18px_rgba(255,224,74,0.5)]'
-                    : 'text-primary border-primary/40 hover:bg-surface-container-highest'
-                }`}
-              >
-                <span
-                  className="material-symbols-outlined text-[22px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  bolt
-                </span>
-              </button>
-
-              {/* Make A Vow Action Button */}
-              <button
-                type="button"
-                onClick={handleMakeVowClick}
-                disabled={isStaking}
-                className={`flex-1 h-12 rounded-full flex items-center justify-center gap-2 font-headline font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer ${
-                  justStaked
-                    ? 'bg-secondary text-on-secondary shadow-[0_0_20px_rgba(0,255,204,0.5)]'
-                    : 'bg-primary text-on-primary shadow-[0_0_18px_rgba(255,45,120,0.45)] hover:opacity-95'
-                }`}
-              >
-                {isStaking ? (
-                  <>
-                    <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
-                    <span>Vowing {activeCandidate.vowRequirement} Tokens...</span>
-                  </>
-                ) : justStaked ? (
-                  <>
-                    <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                    <span>Vow Staked!</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-[18px]">handshake</span>
-                    <span>Make a Vow ({activeCandidate.vowRequirement} Vows)</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* 'Next in Queue' Teaser / Secondary Card preview */}
-        <div className="w-full flex flex-col space-y-2 pt-2">
-          <div className="flex items-center justify-between px-1">
-            <span className="font-label text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
-              Next In Queue
-            </span>
-            <span className="font-label text-[10px] text-secondary font-semibold">
-              14 Candidates Remaining
-            </span>
-          </div>
-
-          <div
-            onClick={() => onSelectCandidateForCeremony(nextCandidate)}
-            className="w-full bg-surface-container p-3 rounded-xl border border-outline-variant/60 shadow-lg flex items-center gap-3 transition-transform hover:scale-[1.01] cursor-pointer"
-          >
-            <div className="relative w-16 h-20 rounded-lg overflow-hidden shrink-0 border border-[#302840]">
-              <img
-                alt={`${nextCandidate.name} preview`}
-                className="w-full h-full object-cover"
-                src={nextCandidate.imageUrl}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/80 to-transparent" />
-              <div className="absolute bottom-1 right-1">
-                <span className="w-2 h-2 rounded-full bg-secondary block shadow-[0_0_6px_#00ffcc]" />
-              </div>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-headline text-sm font-bold text-on-surface truncate">
-                  {nextCandidate.name}
-                </h3>
-                <span className="text-xs text-on-surface-variant">{nextCandidate.age}</span>
-                <span className="material-symbols-outlined text-[13px] text-secondary shrink-0">
-                  verified
-                </span>
-              </div>
-              <p className="font-body text-[11px] text-on-surface-variant truncate mt-0.5">
-                {nextCandidate.title} • {nextCandidate.location} ({nextCandidate.distance})
-              </p>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <span className="px-1.5 py-0.5 rounded bg-surface-container-high font-label text-[10px] font-medium text-secondary">
-                  {nextCandidate.commitmentRate}% Date Rate
-                </span>
-                <span className="font-body text-[10px] text-on-surface-variant truncate">
-                  {nextCandidate.previewBio || nextCandidate.vowVibeNote}
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              aria-label={`View ${nextCandidate.name} Dossier`}
-              className="w-8 h-8 rounded-full bg-surface-container-high border border-[#302840] text-secondary flex items-center justify-center hover:bg-surface-container-highest shrink-0 shadow-[0_0_8px_rgba(0,255,204,0.2)] cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </button>
-          </div>
+          ) : (
+            filteredCandidates.map((candidate, index) => renderCandidateCard(candidate, index))
+          )}
         </div>
 
         {/* Micro-Education / Trust Badge Banner */}
