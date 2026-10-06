@@ -79,7 +79,7 @@ export const CANDIDATES: Candidate[] = [
     vowRequirement: 2,
     vowVibeNote: 'Prefers evening exhibition preview or sake bar',
     tags: ['Installation Art', 'Ambient Sound', 'Natural Wine', 'Typography'],
-    imageUrl: '/images/mateo-bianchi.png',
+    imageUrl: '/images/mateo-bianchi.jpg',
     previewBio: 'Looking for intentional dates in São Paulo',
     meetingVenue: 'Bar do Museu',
     meetingTime: '7:00 PM'
