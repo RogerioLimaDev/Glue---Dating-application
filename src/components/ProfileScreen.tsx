@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { USER_AVATAR } from '../data/mockData';
+import { USER, USER_AVATAR, INITIAL_COMMITMENT } from '../data/mockData';
 
 interface ProfileScreenProps {
   vowBalance: number;
@@ -31,7 +31,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <div className="w-20 h-20 rounded-full overflow-hidden ring-4 ring-primary/60 shadow-[0_0_20px_rgba(255,45,120,0.5)]">
               <img
                 src={USER_AVATAR}
-                alt="Elena Vasquez"
+                alt={USER.name}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -41,18 +41,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <div>
             <div className="flex items-center justify-center gap-1.5">
               <h2 className="text-xl font-headline font-extrabold text-on-surface">
-                Elena Vasquez
+                {USER.name}
               </h2>
               <span className="material-symbols-outlined text-sm text-secondary">verified</span>
             </div>
             <p className="text-xs font-body text-on-surface-variant">
-              Urban Planner &amp; Photographer • Vila Madalena
+              {USER.title} • {USER.location}
             </p>
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high border border-secondary/40 text-secondary text-[11px] font-label font-bold uppercase tracking-wider">
             <span className="material-symbols-outlined text-xs">verified_user</span>
-            <span>Protocol Tier 1 • Anti-Ghost Verified</span>
+            <span>Protocol {USER.protocolTier} • Anti-Ghost Verified</span>
           </div>
         </div>
 
@@ -106,19 +106,19 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="p-2.5 rounded-lg bg-surface-container-low border border-[#302840]">
-              <span className="text-lg font-headline font-bold text-secondary">99%</span>
+              <span className="text-lg font-headline font-bold text-secondary">{USER.attendanceRate}%</span>
               <span className="text-[10px] font-label text-on-surface-variant block uppercase">
                 Attendance
               </span>
             </div>
             <div className="p-2.5 rounded-lg bg-surface-container-low border border-[#302840]">
-              <span className="text-lg font-headline font-bold text-primary">12</span>
+              <span className="text-lg font-headline font-bold text-primary">{USER.datesMet}</span>
               <span className="text-[10px] font-label text-on-surface-variant block uppercase">
                 Dates Met
               </span>
             </div>
             <div className="p-2.5 rounded-lg bg-surface-container-low border border-[#302840]">
-              <span className="text-lg font-headline font-bold text-tertiary">0%</span>
+              <span className="text-lg font-headline font-bold text-tertiary">{USER.flakeRate}%</span>
               <span className="text-[10px] font-label text-on-surface-variant block uppercase">
                 Flake Rate
               </span>
@@ -133,7 +133,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           className="w-full py-3 rounded-xl bg-surface-container border border-primary/40 text-primary hover:bg-primary/15 font-headline font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(255,45,120,0.25)] transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-base">key</span>
-          <span>Open Active Date Ceremony (Alex Rivera)</span>
+          <span>Open Active Date Ceremony ({INITIAL_COMMITMENT.candidateName})</span>
         </button>
 
         {/* Philosophy micro-card */}

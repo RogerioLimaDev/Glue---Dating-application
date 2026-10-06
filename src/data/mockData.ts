@@ -1,7 +1,23 @@
 import { Candidate, Commitment, Conversation } from '../types';
 
 export const GLUE_LOGO = '/images/logo.png';
-export const USER_AVATAR = '/images/user-avatar.jpg';
+export const USER_AVATAR = '/images/alex-rivera.jpg';
+
+export const USER = {
+  id: 'alex-user',
+  firstName: 'Alex',
+  name: 'Alex Rivera',
+  age: 28,
+  title: 'Brand Strategist & Musician',
+  location: 'Pinheiros',
+  bio: 'Independent record producer and coffee obsessive. Believer in prompt arrivals and no digital ghosts.',
+  tags: ['Acoustic Vinyl', 'Modernist Design', 'Cold Brew', 'Cinema'],
+  protocolTier: 'Tier 1',
+  protocolVerified: true,
+  attendanceRate: 99,
+  datesMet: 12,
+  flakeRate: 0
+} as const;
 
 export const CANDIDATES: Candidate[] = [
   {
@@ -119,13 +135,13 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
       {
         id: 'm1',
         sender: 'partner',
-        text: 'Hey Elena! Loved your taste in architectural restoration.',
+        text: "Hey Alex! Loved your taste in architectural restoration.",
         timestamp: 'Yesterday, 6:15 PM'
       },
       {
         id: 'm2',
         sender: 'user',
-        text: 'Thanks Alex! Let\'s skip the weeks of texting and grab a coffee.',
+        text: "Thanks Alex! Let's skip the weeks of texting and grab a coffee.",
         timestamp: 'Yesterday, 7:02 PM'
       },
       {
@@ -161,7 +177,7 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
       {
         id: 'm10',
         sender: 'partner',
-        text: 'Hi Elena! Vow received. Have you been to the new ceramics exhibition in Pinheiros?',
+        text: "Hi Alex! Vow received. Have you been to the new ceramics exhibition in Pinheiros?",
         timestamp: '10:14 AM'
       }
     ]
