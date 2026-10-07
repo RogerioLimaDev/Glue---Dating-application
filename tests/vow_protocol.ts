@@ -96,7 +96,7 @@ describe("vow_protocol", () => {
         Buffer.from("commitment"),
         proposer.publicKey.toBuffer(),
         partner.publicKey.toBuffer(),
-        Buffer.from(proposerCodeHash),
+        new anchor.BN(0).toBuffer("le", 8),
       ],
       program.programId
     );
@@ -108,7 +108,8 @@ describe("vow_protocol", () => {
         timeHash,
         proposerCodeHash,
         partnerCodeHash,
-        expiresAt
+        expiresAt,
+        new anchor.BN(0)
       )
       .accounts({
         commitment,
@@ -174,7 +175,7 @@ describe("vow_protocol", () => {
         Buffer.from("commitment"),
         proposer.publicKey.toBuffer(),
         partner.publicKey.toBuffer(),
-        Buffer.from(freshProposerHash),
+        new anchor.BN(1).toBuffer("le", 8),
       ],
       program.programId
     );
@@ -189,7 +190,8 @@ describe("vow_protocol", () => {
         timeHash,
         freshProposerHash,
         freshPartnerHash,
-        expiresAt
+        expiresAt,
+        new anchor.BN(1)
       )
       .accounts({
         commitment: freshCommitment,

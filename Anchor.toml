@@ -3,10 +3,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-vow_protocol = "Vow111111111111111111111111111111111111111"
+vow_protocol = "CaHLEeQbAqfPXa7ddQ3s8ssF8yc7EYKhwXaibLom6ERN"
 
 [programs.devnet]
-vow_protocol = "Vow111111111111111111111111111111111111111"
+vow_protocol = "CaHLEeQbAqfPXa7ddQ3s8ssF8yc7EYKhwXaibLom6ERN"
 
 [registry]
 url = "https://api.apr.dev"

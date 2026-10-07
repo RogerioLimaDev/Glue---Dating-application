@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("Vow111111111111111111111111111111111111111");
+declare_id!("CaHLEeQbAqfPXa7ddQ3s8ssF8yc7EYKhwXaibLom6ERN");
 
 #[program]
 pub mod vow_protocol {
@@ -11,7 +11,7 @@ pub mod vow_protocol {
         vault.owner = ctx.accounts.owner.key();
         vault.balance = 100; // faucet inicial para demo
         vault.locked = 0;
-        vault.bump = ctx.bumps.user_vault;
+        vault.bump = ctx.bumps["user_vault"];
         Ok(())
     }
 
@@ -23,7 +23,9 @@ pub mod vow_protocol {
         proposer_code_hash: [u8; 32],
         partner_code_hash: [u8; 32],
         expires_at: i64,
+        nonce: u64,
     ) -> Result<()> {
+        let _ = nonce; // only used in PDA seeds via #[instruction]
         require!(vows > 0, VowError::ZeroVows);
 
         let now = Clock::get()?.unix_timestamp;
@@ -36,7 +38,7 @@ pub mod vow_protocol {
         vault.locked += vows;
 
         let commitment = &mut ctx.accounts.commitment;
-        commitment.bump = ctx.bumps.commitment;
+        commitment.bump = ctx.bumps["commitment"];
         commitment.proposer = ctx.accounts.proposer.key();
         commitment.partner = ctx.accounts.partner.key();
         commitment.vows = vows;
@@ -191,6 +193,7 @@ pub struct InitializeUserVault<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(nonce: u64)]
 pub struct CreateCommitment<'info> {
     #[account(
         init,
@@ -200,7 +203,7 @@ pub struct CreateCommitment<'info> {
             b"commitment",
             proposer.key().as_ref(),
             partner.key().as_ref(),
-            proposer_code_hash.as_ref(),
+            &nonce.to_le_bytes(),
         ],
         bump
     )]
