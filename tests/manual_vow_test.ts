@@ -112,23 +112,27 @@ async function main() {
 
   // Create commitment
   let c: any;
-  const vows = new anchor.BN(5);
+  const vows = new BN(5);
   const venue = "Café Gitane";
   const time = "Tomorrow 11:30 AM";
   const proposerCode = "482731";
   const partnerCode = "631942";
-  const nonce = new anchor.BN(0);
+  const nonce = new BN(0);
   const now = Math.floor(Date.now() / 1000);
-  const expiresAt = new anchor.BN(now + 86400);
+  const expiresAt = new BN(now + 86400);
 
   const [commitment] = anchor.web3.PublicKey.findProgramAddressSync(
     [
       Buffer.from("commitment"),
       proposer.publicKey.toBuffer(),
       partner.publicKey.toBuffer(),
-      nonce.toBuffer("le", 8),
+      vows.toArrayLike(Buffer, "le", 8),
     ],
     program.programId
+  );
+  console.log(
+    "PDA derivado com vows como seed (workaround: programa usa vows em vez de nonce na seed):",
+    commitment.toBase58()
   );
 
   await program.methods
