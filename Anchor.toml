@@ -1,18 +1,12 @@
 [features]
-seeds = false
+seeds = true
 skip-lint = false
 
 [programs.localnet]
-vow_protocol = "CaHLEeQbAqfPXa7ddQ3s8ssF8yc7EYKhwXaibLom6ERN"
-
-[programs.devnet]
-vow_protocol = "CaHLEeQbAqfPXa7ddQ3s8ssF8yc7EYKhwXaibLom6ERN"
-
-[registry]
-url = "https://api.apr.dev"
+vow_protocol = "592x9qBjrwDiZiVfAuaAqqghnYJvygQFsXLBp5Yqxt3R"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

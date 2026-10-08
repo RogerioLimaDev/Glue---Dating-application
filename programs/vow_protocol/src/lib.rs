@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
 
-declare_id!("CaHLEeQbAqfPXa7ddQ3s8ssF8yc7EYKhwXaibLom6ERN");
+declare_id!("592x9qBjrwDiZiVfAuaAqqghnYJvygQFsXLBp5Yqxt3R");
+
+
 
 #[program]
 pub mod vow_protocol {
@@ -9,9 +11,9 @@ pub mod vow_protocol {
     pub fn initialize_user_vault(ctx: Context<InitializeUserVault>) -> Result<()> {
         let vault = &mut ctx.accounts.user_vault;
         vault.owner = ctx.accounts.owner.key();
+        vault.bump = ctx.bumps.user_vault;
         vault.balance = 100; // faucet inicial para demo
         vault.locked = 0;
-        vault.bump = ctx.bumps["user_vault"];
         Ok(())
     }
 
@@ -38,7 +40,7 @@ pub mod vow_protocol {
         vault.locked += vows;
 
         let commitment = &mut ctx.accounts.commitment;
-        commitment.bump = ctx.bumps["commitment"];
+        commitment.bump = ctx.bumps.commitment;
         commitment.proposer = ctx.accounts.proposer.key();
         commitment.partner = ctx.accounts.partner.key();
         commitment.vows = vows;

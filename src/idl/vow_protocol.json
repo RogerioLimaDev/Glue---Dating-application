@@ -1,11 +1,498 @@
 {
   "version": "0.1.0",
   "name": "vow_protocol",
-  "instructions": [],
-  "accounts": [],
-  "types": [],
-  "errors": [],
-  "metadata": {
-    "address": "CaHLEeQbAqfPXa7ddQ3s8ssF8yc7EYKhwXaibLom6ERN"
-  }
+  "instructions": [
+    {
+      "name": "initializeUserVault",
+      "accounts": [
+        {
+          "name": "userVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "user_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "createCommitment",
+      "accounts": [
+        {
+          "name": "commitment",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "commitment"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "proposer"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "partner"
+              },
+              {
+                "kind": "arg",
+                "type": "u64",
+                "path": "nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "partner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "proposerVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "user_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "proposer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "vows",
+          "type": "u64"
+        },
+        {
+          "name": "venueHash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "timeHash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "proposerCodeHash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "partnerCodeHash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "expiresAt",
+          "type": "i64"
+        },
+        {
+          "name": "nonce",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "acceptCommitment",
+      "accounts": [
+        {
+          "name": "commitment",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "partner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "partnerVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "user_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "partner"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancelCommitment",
+      "accounts": [
+        {
+          "name": "commitment",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "caller",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "proposerVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "user_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Commitment",
+                "path": "commitment.proposer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "partnerVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "user_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Commitment",
+                "path": "commitment.partner"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "verifyDate",
+      "accounts": [
+        {
+          "name": "commitment",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "caller",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proposerCode",
+          "type": "string"
+        },
+        {
+          "name": "partnerCode",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "settleCommitment",
+      "accounts": [
+        {
+          "name": "commitment",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "caller",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "proposerVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "user_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Commitment",
+                "path": "commitment.proposer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "partnerVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "user_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Commitment",
+                "path": "commitment.partner"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "UserVault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "balance",
+            "type": "u64"
+          },
+          {
+            "name": "locked",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Commitment",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "proposer",
+            "type": "publicKey"
+          },
+          {
+            "name": "partner",
+            "type": "publicKey"
+          },
+          {
+            "name": "vows",
+            "type": "u64"
+          },
+          {
+            "name": "venueHash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "timeHash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "proposerCodeHash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "partnerCodeHash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "state",
+            "type": {
+              "defined": "CommitmentState"
+            }
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "expiresAt",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "CommitmentState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Proposed"
+          },
+          {
+            "name": "Locked"
+          },
+          {
+            "name": "Verified"
+          },
+          {
+            "name": "Settled"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InsufficientBalance",
+      "msg": "Insufficient vow balance"
+    },
+    {
+      "code": 6001,
+      "name": "ZeroVows",
+      "msg": "Zero vows not allowed"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidState",
+      "msg": "Invalid commitment state"
+    },
+    {
+      "code": 6003,
+      "name": "Expired",
+      "msg": "Commitment expired"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidDateCode",
+      "msg": "Invalid date code"
+    },
+    {
+      "code": 6005,
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
+    },
+    {
+      "code": 6006,
+      "name": "InsufficientLocked",
+      "msg": "Insufficient locked vows"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidExpiry",
+      "msg": "Expiry must be in the future"
+    }
+  ]
 }

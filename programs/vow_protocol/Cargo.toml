@@ -16,7 +16,7 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.28.0"
-solana-program = "1.16.27"
+anchor-lang = "0.29.0"
+solana-program = "1.17.0"
 digest = "=0.10.7"
 sha2 = "=0.10.9"
