@@ -12,6 +12,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+    <script type="module">
+      // Polyfill global Buffer for Solana/Anchor browser deps (anchor, bn.js internals)
+      import { Buffer } from 'buffer';
+      import process from 'process';
+      globalThis.Buffer = Buffer;
+      globalThis.process = process;
+      globalThis.global = globalThis;
+    </script>
   </head>
   <body class="bg-[#0a0a12] text-[#e8e0f0] font-sans antialiased selection:bg-[#ff2d78] selection:text-white">
     <div id="root"></div>

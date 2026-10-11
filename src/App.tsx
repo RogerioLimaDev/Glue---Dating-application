@@ -18,6 +18,17 @@ import { IcebreakerModal } from './components/IcebreakerModal';
 import { VowStakedModal } from './components/VowStakedModal';
 import { VaultModal } from './components/VaultModal';
 
+import {
+  useVault,
+  DEMO_PARTNER_PUBKEY,
+  deriveCommitmentPda,
+  deriveVaultPda,
+  sha256Bytes,
+  makePartnerProgram,
+} from './solana/useVault';
+import { BN } from 'bn.js';
+import { PublicKey, SystemProgram } from '@solana/web3.js';
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<'discover' | 'ceremony' | 'vows' | 'chats' | 'profile'>('discover');
   const [vowBalance, setVowBalance] = useState<number>(12);
@@ -41,84 +52,230 @@ export default function App() {
   const [isVaultModalOpen, setIsVaultModalOpen] = useState(false);
   const [stakedCandidate, setStakedCandidate] = useState<Candidate | null>(null);
 
-  // Staking a vow on a candidate in Discover
-  const handleMakeVow = (candidate: Candidate) => {
+  // ---- On-chain (vow_protocol) integration ----
+  const { program, publicKey, vault, refresh: refreshVault, initVault, ensureReady } = useVault();
+  const [txPending, setTxPending] = useState(false);
+
+  // Keep the displayed Vow balance driven by on-chain state when available
+  React.useEffect(() => {
+    if (vault?.exists) setVowBalance(vault.balance);
+  }, [vault?.exists, vault?.balance]);
+
+  const handleInitializeVault = async () => {
+    try {
+      await initVault();
+    } catch (e) {
+      console.error('initializeUserVault failed:', e);
+      alert('Falha ao inicializar vault on-chain. Veja o console.');
+    }
+  };
+
+  // Staking a vow on a candidate in Discover — creates an on-chain commitment
+  const handleMakeVow = async (candidate: Candidate) => {
+    console.log('[MakeVow] click', { pub: publicKey.toBase58().slice(0, 6), vault: vault?.exists });
     const cost = candidate.vowRequirement || 2;
-    if (vowBalance < cost) {
-      alert("Insufficient Vows in balance! Top up in the Vow Vault.");
+
+    // demo mode: fund fees + auto-initialize vault if missing (returns faucet amount)
+    let balanceNow = vault?.balance ?? 0;
+    try {
+      if (!vault?.exists) {
+        balanceNow = await ensureReady();
+      }
+    } catch (e) {
+      console.error('vault init failed:', e);
+      alert('Falha ao iniciar vault on-chain. Veja o console.');
+      return;
+    }
+
+    if (balanceNow < cost) {
+      alert('Insufficient Vows in balance! Top up in the Vow Vault.');
       setIsVaultModalOpen(true);
       return;
     }
 
-    setVowBalance((prev) => Math.max(0, prev - cost));
+    setTxPending(true);
+    try {
+      const venue = candidate.meetingVenue || 'Café Gitane';
+      const time = candidate.meetingTime || 'Tomorrow 4:00 PM';
+      // Demo Date Codes: the UI generates both; in the real flow the partner keeps theirs secret
+      const userCode = String(Math.floor(1000 + Math.random() * 9000)).padStart(6, '0').slice(0, 6);
+      const partnerCode = String(Math.floor(1000 + Math.random() * 9000)).padStart(6, '0').slice(0, 6);
 
-    const newCommitment: Commitment = {
-      id: `commit-${candidate.id}-${Date.now()}`,
-      candidateId: candidate.id,
-      candidateName: candidate.name,
-      candidateAge: candidate.age,
-      candidateTitle: candidate.title,
-      candidateImage: candidate.imageUrl,
-      venue: candidate.meetingVenue || 'Café Gitane',
-      time: candidate.meetingTime || '4:00 PM',
-      userCode: String(Math.floor(1000 + Math.random() * 9000)),
-      partnerCode: String(Math.floor(1000 + Math.random() * 9000)),
-      vowsStaked: cost,
-      status: 'escrowed',
-      createdAt: 'Just now'
-    };
+      const now = Math.floor(Date.now() / 1000);
+      const [cmtPda] = deriveCommitmentPda(publicKey, DEMO_PARTNER_PUBKEY, cost);
 
-    setCommitments((prev) => [newCommitment, ...prev]);
-    setSelectedCommitment(newCommitment);
-    setStakedCandidate(candidate);
-    setIsVowStakedModalOpen(true);
+      await program.methods
+        .createCommitment(
+          new BN(cost),
+          sha256Bytes(venue),
+          sha256Bytes(time),
+          sha256Bytes(userCode),
+          sha256Bytes(partnerCode),
+          new BN(now + 86400),
+          new BN(0)
+        )
+        .accounts({
+          commitment: cmtPda,
+          proposer: publicKey,
+          partner: DEMO_PARTNER_PUBKEY,
+          proposerVault: deriveVaultPda(publicKey)[0],
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
 
-    // Also ensure conversation exists
-    setConversations((prev) => {
-      const exists = prev.find((c) => c.candidateId === candidate.id);
-      if (exists) {
-        return prev.map((c) =>
-          c.candidateId === candidate.id
-            ? { ...c, hasActiveEscrow: true, meetingVenue: newCommitment.venue, meetingTime: newCommitment.time }
-            : c
-        );
-      }
-      return [
-        {
-          id: `conv-${candidate.id}`,
-          candidateId: candidate.id,
-          candidateName: candidate.name,
-          candidateImage: candidate.imageUrl,
-          lastMessage: `Vow Staked! Meeting at ${newCommitment.venue}`,
-          lastMessageTime: 'Just now',
-          unreadCount: 0,
-          hasActiveEscrow: true,
-          meetingVenue: newCommitment.venue,
-          meetingTime: newCommitment.time,
-          messages: [
-            {
-              id: `m-${Date.now()}`,
-              sender: 'system',
-              text: `Mutual Vow Protocol initiated. Staked ${cost} Vows for ${newCommitment.venue} at ${newCommitment.time}.`,
-              timestamp: 'Just now',
-              isDateProposal: true,
-              proposalDetails: {
-                venue: newCommitment.venue,
-                time: newCommitment.time,
-                stakedVows: cost
+      await refreshVault();
+
+      const newCommitment: Commitment = {
+        id: `commit-${candidate.id}-${Date.now()}`,
+        candidateId: candidate.id,
+        candidateName: candidate.name,
+        candidateAge: candidate.age,
+        candidateTitle: candidate.title,
+        candidateImage: candidate.imageUrl,
+        venue,
+        time,
+        userCode,
+        partnerCode,
+        vowsStaked: cost,
+        status: 'escrowed',
+        createdAt: 'Just now',
+        onChain: cmtPda.toBase58(),
+        proposerKey: publicKey.toBase58(),
+      };
+
+      setCommitments((prev) => [newCommitment, ...prev]);
+      setSelectedCommitment(newCommitment);
+      setStakedCandidate(candidate);
+      setIsVowStakedModalOpen(true);
+
+      // Also ensure conversation exists
+      setConversations((prev) => {
+        const exists = prev.find((c) => c.candidateId === candidate.id);
+        if (exists) {
+          return prev.map((c) =>
+            c.candidateId === candidate.id
+              ? { ...c, hasActiveEscrow: true, meetingVenue: newCommitment.venue, meetingTime: newCommitment.time }
+              : c
+          );
+        }
+        return [
+          {
+            id: `conv-${candidate.id}`,
+            candidateId: candidate.id,
+            candidateName: candidate.name,
+            candidateImage: candidate.imageUrl,
+            lastMessage: `Vow Staked! Meeting at ${newCommitment.venue}`,
+            lastMessageTime: 'Just now',
+            unreadCount: 0,
+            hasActiveEscrow: true,
+            meetingVenue: newCommitment.venue,
+            meetingTime: newCommitment.time,
+            messages: [
+              {
+                id: `m-${Date.now()}`,
+                sender: 'system',
+                text: `Mutual Vow Protocol initiated. Staked ${cost} Vows for ${newCommitment.venue} at ${newCommitment.time}.`,
+                timestamp: 'Just now',
+                isDateProposal: true,
+                proposalDetails: {
+                  venue: newCommitment.venue,
+                  time: newCommitment.time,
+                  stakedVows: cost
+                }
               }
-            }
-          ]
-        },
-        ...prev
-      ];
-    });
+            ]
+          },
+          ...prev
+        ];
+      });
+    } catch (e) {
+      console.error('createCommitment failed:', e);
+      alert('Falha ao criar commitment on-chain. Veja o console.');
+    } finally {
+      setTxPending(false);
+    }
   };
 
-  // Date code verification ceremony completion
-  const handleVerifyDate = () => {
+  // Date code verification ceremony completion — verify + settle on-chain
+  const handleVerifyDate = async () => {
+    const commitment = commitments.find((c) => c.id === selectedCommitment.id);
+    console.log('[Verify] called', {
+      prog: !!program,
+      pk: !!publicKey,
+      selId: selectedCommitment.id,
+      foundOnChain: !!commitment?.onChain,
+      cid: commitment?.candidateId,
+    });
+    if (
+      !program ||
+      !publicKey ||
+      !commitment?.onChain ||
+      commitment.candidateId === 'demo'
+    ) {
+      // demo-only path (no on-chain commitment attached)
+      setIsVerified(true);
+      setVowBalance((prev) => prev + selectedCommitment.vowsStaked * 2);
+      setCommitments((prev) =>
+        prev.map((c) =>
+          c.id === selectedCommitment.id
+            ? { ...c, status: 'fulfilled', fulfilledAt: 'Just now' }
+            : c
+        )
+      );
+      return;
+    }
+
+    setTxPending(true);
+    try {
+      console.log('[Verify] ON-CHAIN path: cmtPda=', commitment.onChain);
+      const cmtPda = new PublicKey(commitment.onChain);
+
+      // 1. acceptCommitment — signed by the demo partner (state Proposed -> Locked).
+      //    Required: verify_date demands Locked state (lib.rs:110).
+      const { program: partnerProg } = makePartnerProgram();
+      const [partnerVaultPda] = deriveVaultPda(DEMO_PARTNER_PUBKEY);
+      await partnerProg.methods
+        .acceptCommitment()
+        .accounts({
+          commitment: cmtPda,
+          partner: DEMO_PARTNER_PUBKEY,
+          partnerVault: partnerVaultPda,
+        })
+        .rpc();
+      console.log('[Verify] accepted by partner');
+
+      // 2. verifyDate — caller = proposer, codes checked against stored hashes
+      const sigV = await program.methods
+        .verifyDate(commitment.userCode, commitment.partnerCode)
+        .accounts({ commitment: cmtPda, caller: publicKey })
+        .rpc();
+      console.log('[Verify] verifyDate sig:', sigV.slice(0, 12));
+
+      // 3. settle — returns vows to both vaults
+      const proposerKey = commitment.proposerKey ? new PublicKey(commitment.proposerKey) : publicKey;
+      const [proposerVault] = deriveVaultPda(proposerKey);
+      await program.methods
+        .settleCommitment()
+        .accounts({
+          commitment: cmtPda,
+          caller: publicKey,
+          proposerVault,
+          partnerVault: partnerVaultPda,
+        })
+        .rpc();
+      console.log('[Verify] settled');
+
+      await refreshVault();
+      const acc = await program.account.commitment.fetchNullable(cmtPda, 'confirmed');
+      console.log('on-chain state settled:', acc && Object.keys(acc.state)[0]);
+    } catch (e) {
+      console.error('verify/settle failed:', e);
+      alert('Falha ao verificar/settar on-chain. Veja o console.');
+    } finally {
+      setTxPending(false);
+    }
+
     setIsVerified(true);
-    setVowBalance((prev) => prev + selectedCommitment.vowsStaked * 2); // Escrow returned
     setCommitments((prev) =>
       prev.map((c) =>
         c.id === selectedCommitment.id
@@ -263,7 +420,11 @@ export default function App() {
         {activeTab === 'profile' && (
           <ProfileScreen
             vowBalance={vowBalance}
-            onAddVows={(amt) => setVowBalance((prev) => prev + amt)}
+            onAddVows={(amt) => {
+              // On-chain mode: route "top up" to initializeUserVault (faucet of 100 demo Vows)
+              void amt;
+              void handleInitializeVault();
+            }}
             onOpenCeremony={() => {
               setSelectedCommitment(activeDateCommit);
               setActiveTab('ceremony');

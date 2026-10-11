@@ -8,7 +8,7 @@ const root = createRoot(document.getElementById('root') as HTMLElement);
 
 root.render(
   <StrictMode>
-    <SolanaProvider network="devnet">
+    <SolanaProvider network="localnet">
       <App />
     </SolanaProvider>
   </StrictMode>

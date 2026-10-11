@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { BN } from "bn.js";
+import BN from "bn.js";
 import { VowProtocol } from "../target/types/vow_protocol";
 import * as fs from "fs";
 import * as crypto from "crypto";

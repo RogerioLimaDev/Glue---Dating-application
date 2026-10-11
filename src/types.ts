@@ -34,6 +34,10 @@ export interface Commitment {
   status: 'escrowed' | 'fulfilled' | 'cancelled';
   createdAt: string;
   fulfilledAt?: string;
+  /** base58 PDA of the on-chain commitment (present when staked via wallet) */
+  onChain?: string;
+  /** base58 proposer pubkey stored at staking time (for vault derivations) */
+  proposerKey?: string;
 }
 
 export interface ChatMessage {

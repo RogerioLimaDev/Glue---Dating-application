@@ -9,6 +9,10 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        // @noble/curves v2 removed the ./secp256k1 subpath from its exports map,
+        // but secp256k1.js still ships. Wallet-adapter deps (keystone/bip32) still
+        // import '@noble/curves/secp256k1', so remap it explicitly.
+        '@noble/curves/secp256k1': path.resolve(__dirname, 'node_modules/@noble/curves/secp256k1.js'),
       },
     },
     server: {
