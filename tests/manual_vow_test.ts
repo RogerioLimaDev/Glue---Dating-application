@@ -121,17 +121,19 @@ async function main() {
   const now = Math.floor(Date.now() / 1000);
   const expiresAt = new BN(now + 86400);
 
+  // Commitment PDA: [commitment, proposer, partner, sha256(proposerCode)]
+  const codeHash = sha256(proposerCode);
   const [commitment] = anchor.web3.PublicKey.findProgramAddressSync(
     [
       Buffer.from("commitment"),
       proposer.publicKey.toBuffer(),
       partner.publicKey.toBuffer(),
-      vows.toArrayLike(Buffer, "le", 8),
+      codeHash,
     ],
     program.programId
   );
   console.log(
-    "PDA derivado com vows como seed (workaround: programa usa vows em vez de nonce na seed):",
+    "PDA derivado com hash do código do proposer (seed única por commitment):",
     commitment.toBase58()
   );
 

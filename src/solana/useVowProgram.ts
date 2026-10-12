@@ -25,19 +25,20 @@ export const RPC_ENDPOINT = 'http://127.0.0.1:8899';
 
 // ---- PDAs -----------------------------------------------------------------
 
-// Runtime quirk: the deployed program derives the commitment PDA using `vows`
-// (arg[0]) as the last seed instead of `nonce` (arg[6]) — see glue-project-notes.
+// Commitment PDA: [b"commitment", proposer, partner, sha256(proposerCode)]
+// The code hash is random per commitment (UI generates it), so PDAs never
+// collide — multi-candidate staking works with a single wallet.
 export function deriveCommitmentPda(
   proposer: PublicKey,
   partner: PublicKey,
-  vows: number
+  proposerCodeHash: number[] | Uint8Array
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [
       Buffer.from('commitment'),
       proposer.toBuffer(),
       partner.toBuffer(),
-      new BN(vows).toArrayLike(Buffer, 'le', 8),
+      Buffer.from(proposerCodeHash),
     ],
     VOW_PROGRAM_ID
   );

@@ -195,7 +195,7 @@ pub struct InitializeUserVault<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(nonce: u64)]
+#[instruction(vows: u64, venue_hash: [u8; 32], time_hash: [u8; 32], proposer_code_hash: [u8; 32], partner_code_hash: [u8; 32], expires_at: i64, nonce: u64)]
 pub struct CreateCommitment<'info> {
     #[account(
         init,
@@ -205,7 +205,7 @@ pub struct CreateCommitment<'info> {
             b"commitment",
             proposer.key().as_ref(),
             partner.key().as_ref(),
-            &nonce.to_le_bytes(),
+            &proposer_code_hash,
         ],
         bump
     )]

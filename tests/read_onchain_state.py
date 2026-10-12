@@ -39,7 +39,7 @@ for acc in res["result"]:
         proposer = b58(raw[9:41])
         partner = b58(raw[41:73])
         vows = int.from_bytes(raw[73:81], "little")
-        state = STATES.get(raw[201], f"?{raw[201]}")
+        state = STATES.get(raw[209], f"?{raw[209]}")
         print(f"COMMITMENT {acc['pubkey'][:10]} | vows={vows} state={state} bump={bump}")
         print(f"   proposer: {proposer}")
         print(f"   partner : {partner[:12]}...{partner[-6:]}")

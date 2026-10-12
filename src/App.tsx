@@ -102,7 +102,8 @@ export default function App() {
       const partnerCode = String(Math.floor(1000 + Math.random() * 9000)).padStart(6, '0').slice(0, 6);
 
       const now = Math.floor(Date.now() / 1000);
-      const [cmtPda] = deriveCommitmentPda(publicKey, DEMO_PARTNER_PUBKEY, cost);
+      const userCodeHash = sha256Bytes(userCode);
+      const [cmtPda] = deriveCommitmentPda(publicKey, DEMO_PARTNER_PUBKEY, userCodeHash);
 
       await program.methods
         .createCommitment(
